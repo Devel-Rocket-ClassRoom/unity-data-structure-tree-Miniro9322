@@ -93,7 +93,7 @@ public class TreeVisuallize : MonoBehaviour
             for (int i = 0; i < row.Count; i++)
             {
                 // TODO: i번째 노드의 x좌표는?
-                nodePositions[row[i]] = new Vector3((i - (row.Count - 1) * 0.5f) * horizontalSpacing, y, 0f);
+                nodePositions[row[i]] = new Vector3(0f + i * horizontalSpacing, y, 0f);
             }
         }
     }
