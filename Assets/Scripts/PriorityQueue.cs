@@ -6,22 +6,22 @@ using static UnityEngine.Rendering.DebugUI;
 
 public class PriorityQueue<TElement, TPriority>
 {
-    public int Count { get; private set; }
+    public int Count => queue.Count;
 
     private List<(TElement Element, TPriority Priority)> queue;
+    private readonly IComparer<TPriority> comparer;
+
+    public PriorityQueue()
+    {
+        queue = new();
+        comparer = Comparer<TPriority>.Default;
+    }
 
     public void Enqueue(TElement element, TPriority priority)
     {
-        if(queue == null)
-        {
-            queue = new();
-        }
-
         queue.Add((element, priority));
-        
-        Count = queue.Count;
 
-        HeapifyUp((element, priority));
+        HeapifyUp(queue.Count - 1);
 
         foreach (var value in queue)
         {
@@ -30,41 +30,38 @@ public class PriorityQueue<TElement, TPriority>
         Debug.Log("--------------------인큐");
     }
 
-    private void HeapifyUp((TElement Element, TPriority Priority) value)
+    private void HeapifyUp(int index)
     {
-        int index = queue.IndexOf(value);
-
-        if(index == 0)
+        while (index > 0)
         {
-            return;
-        }
+            var parentIndex = (index - 1) / 2;
 
-        if (Comparer<TPriority>.Default.Compare(queue[index].Priority, queue[(index - 1) / 2].Priority) < 0)
-        {
-            var temp = queue[index];
-            queue[index] = queue[(index - 1) / 2];
-            queue[(index - 1) / 2] = temp;
+            if (comparer.Compare(queue[index].Priority, queue[parentIndex].Priority) < 0)
+            {
+                var temp = queue[index];
+                queue[index] = queue[parentIndex];
+                queue[parentIndex] = temp;
+            }
+            
+            index = parentIndex;
         }
-        else
-        {
-            return;
-        }
-
-        HeapifyUp(value);
     }
 
 
     public TElement Dequeue()
     {
+        if(queue.Count == 0)
+        {
+            throw new ArgumentNullException();
+        }
+
         var value = queue[0].Element;
 
         var temp = queue[queue.Count - 1];
         queue.Remove(temp);
         queue[0] = temp;
 
-        Count = queue.Count;
-
-        HeapifyDown(queue[0]);
+        HeapifyDown(0);
 
         foreach( var element in queue)
         {
@@ -74,54 +71,38 @@ public class PriorityQueue<TElement, TPriority>
         return value;
     }
 
-    private void HeapifyDown((TElement Element, TPriority Priority) value)
+    private void HeapifyDown(int index)
     {
-        int index = queue.IndexOf(value);
-
-        if(2 * index + 1 > Count || 2 * index + 2 > Count)
+        while (true)
         {
-            return;
-        }
+            var leftChildIndex = 2 * index + 1;
+            var rightChildIndex = 2 * index + 2;
+            var smallNodeIndex = index;
 
-        bool biggerThanLeft = Comparer<TPriority>.Default.Compare(queue[index].Priority, queue[2 * index + 1].Priority) > 0;
-        bool biggerThanRight = Comparer<TPriority>.Default.Compare(queue[index].Priority, queue[2 * index + 2].Priority) > 0;
-
-        var leftChild = queue[2 * index + 1];
-        var rightChild = queue[2 * index + 2];
-
-        if (biggerThanLeft && biggerThanRight)
-        {
-            if (Comparer<TPriority>.Default.Compare(rightChild.Priority, leftChild.Priority) >= 0)
+            if(leftChildIndex >= Count ||  rightChildIndex >= Count)
             {
-                var temp = queue[index];
-                queue[index] = leftChild;
-                leftChild = temp;
+                break;
             }
-            else
+
+            if (comparer.Compare(queue[smallNodeIndex].Priority, queue[leftChildIndex].Priority) > 0)
             {
-                var temp = queue[index];
-                queue[index] = rightChild;
-                rightChild = temp;
+                smallNodeIndex = leftChildIndex;
             }
-        }
-        else if (biggerThanLeft)
-        {
+            if (comparer.Compare(queue[smallNodeIndex].Priority, queue[rightChildIndex].Priority) > 0)
+            {
+                smallNodeIndex = rightChildIndex;
+            }
+            if(smallNodeIndex == index)
+            {
+                break;
+            }
+
             var temp = queue[index];
-            queue[index] = leftChild;
-            leftChild = temp;
+            queue[index] = queue[smallNodeIndex];
+            queue[smallNodeIndex] = temp;
+
+            index = smallNodeIndex;
         }
-        else if (biggerThanRight)
-        {
-            var temp = queue[index];
-            queue[index] = rightChild;
-            rightChild = temp;
-        }
-        else
-        {
-            return;
-        }
-        
-        HeapifyDown(value);
     }
 
     public TElement Peek()
