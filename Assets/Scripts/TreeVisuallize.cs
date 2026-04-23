@@ -54,7 +54,7 @@ public class TreeVisuallize : MonoBehaviour
 
         // TODO: 이번 레벨에서 자식을 좌우로 얼마나 벌릴지 계산
         //   힌트: horizontalSpacing * 0.5f * Mathf.Pow(2, ???)
-        float offset = horizontalSpacing * 0.5f * Mathf.Pow(2, height);
+        float offset = horizontalSpacing * 0.5f * Mathf.Pow(2, height - 1);
 
         Vector3 childBase = position + Vector3.down * verticalSpacing;
 
