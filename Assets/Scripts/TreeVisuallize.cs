@@ -13,13 +13,21 @@ public class TreeVisuallize : MonoBehaviour
     public float horizontalSpacing = 2.0f;
     public float verticalSpacing = 2.0f;
 
+    private List<LineRenderer> activateLines = new();
+
     private void Awake()
     {
         tree = new BinarySearchTree<int, GameObject>();
         for (int i = 0; i < createAmount; i++)
         {
-            tree[Random.Range(0, 100)] = Prefabs;
+            tree[Random.Range(0, 100)] = Instantiate(Prefabs);
         }
+    }
+
+    private void Start()
+    {
+        AssignPositionsPow(tree.root, Vector3.zero, tree.root.Height);
+        InstantiateSubtree(tree.root);
     }
 
     private void Update()
@@ -120,8 +128,9 @@ public class TreeVisuallize : MonoBehaviour
             return;
         }
 
-        Instantiate(node.Value, nodePositions[node], Quaternion.identity);
+        node.Value.transform.position = nodePositions[node];
         var lineLeft = Instantiate(Line).GetComponent<LineRenderer>();
+        activateLines.Add(lineLeft);
         lineLeft.positionCount = 2;
 
         if(node.Left != null)
@@ -132,6 +141,7 @@ public class TreeVisuallize : MonoBehaviour
         }
 
         var lineRight = Instantiate(Line).GetComponent<LineRenderer>();
+        activateLines.Add(lineRight);
         lineRight.positionCount = 2;
 
         if (node.Right != null)
