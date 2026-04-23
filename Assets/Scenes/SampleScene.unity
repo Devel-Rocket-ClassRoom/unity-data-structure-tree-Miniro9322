@@ -569,6 +569,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TreeVisuallize
   Prefabs: {fileID: 6285188371626437566, guid: bcdeb73e14a0a664398fb1240c4b11cd, type: 3}
+  Line: {fileID: 872725559835203062, guid: 69e8926a936dff64dbff348f6f50ab28, type: 3}
   createAmount: 10
   horizontalSpacing: 2
   verticalSpacing: 2

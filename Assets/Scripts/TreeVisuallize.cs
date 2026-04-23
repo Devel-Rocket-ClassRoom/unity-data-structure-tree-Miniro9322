@@ -4,6 +4,7 @@ using UnityEngine;
 public class TreeVisuallize : MonoBehaviour
 {
     public GameObject Prefabs;
+    public GameObject Line;
 
     public int createAmount;
 
@@ -17,22 +18,30 @@ public class TreeVisuallize : MonoBehaviour
         tree = new BinarySearchTree<int, GameObject>();
         for (int i = 0; i < createAmount; i++)
         {
-            tree[Random.Range(0, 100)] = Instantiate(Prefabs);
+            tree[Random.Range(0, 100)] = Prefabs;
         }
-        //AssignPositionsPow(tree.root, Vector3.zero, tree.root.Height);
-        //AssignPositionsLevelOrder(tree.root);
-        int xIndex = 0;
-        AssignPositionsInOrder(tree.root, 0, ref xIndex);
     }
 
-    private void Start()
+    private void Update()
     {
-        foreach(var node in tree.InOrderTraversal())
+        if (Input.GetKeyDown(KeyCode.Alpha1))
         {
-            node.Value.transform.position = nodePositions[node.Value];
+            AssignPositionsPow(tree.root, Vector3.zero, tree.root.Height);
+            InstantiateSubtree(tree.root);
         }
 
-        DrawConnections(tree.root);
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            AssignPositionsLevelOrder(tree.root);
+            InstantiateSubtree(tree.root);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+        {
+            int xIndex = 0;
+            AssignPositionsInOrder(tree.root, 0, ref xIndex);
+            InstantiateSubtree(tree.root);
+        }
     }
 
 
@@ -41,7 +50,7 @@ public class TreeVisuallize : MonoBehaviour
     {
         if (node == null) return;
 
-        nodePositions[node.Value] = position;
+        nodePositions[node] = position;
 
         // TODO: 이번 레벨에서 자식을 좌우로 얼마나 벌릴지 계산
         //   힌트: horizontalSpacing * 0.5f * Mathf.Pow(2, ???)
@@ -73,7 +82,6 @@ public class TreeVisuallize : MonoBehaviour
             if (node.Left != null)
                 queue.Enqueue((node.Left, depth + 1));
             if (node.Right != null)
-                /* ??? */
                 queue.Enqueue((node.Right, depth + 1));
         }
 
@@ -85,7 +93,7 @@ public class TreeVisuallize : MonoBehaviour
             for (int i = 0; i < row.Count; i++)
             {
                 // TODO: i번째 노드의 x좌표는?
-                nodePositions[row[i].Value] = new Vector3((i - (row.Count - 1) * 0.5f) * horizontalSpacing, y, 0f);
+                nodePositions[row[i]] = new Vector3((i - (row.Count - 1) * 0.5f) * horizontalSpacing, y, 0f);
             }
         }
     }
@@ -95,57 +103,42 @@ public class TreeVisuallize : MonoBehaviour
         if (node == null) return;
 
         // TODO: 왼쪽 서브트리 먼저 방문 (depth + 1)
-        /* ??? */
         AssignPositionsInOrder(node.Left, depth + 1, ref xIndex);
 
         // TODO: 자신의 좌표 기록 — x는 xIndex 기반, y는 depth 기반
-        nodePositions[node.Value] = new Vector3(xIndex * horizontalSpacing, -depth * verticalSpacing, 0f);
+        nodePositions[node] = new Vector3(xIndex * horizontalSpacing, -depth * verticalSpacing, 0f);
         xIndex++;
 
         // TODO: 오른쪽 서브트리 방문 (depth + 1)
-        /* ??? */
         AssignPositionsInOrder(node.Right, depth + 1, ref xIndex);
     }
 
-    private void DrawLine(Vector3 start, Vector3 end)
+    private void InstantiateSubtree(TreeNode<int, GameObject> node)
     {
-        GameObject lineObj = new GameObject("Line");
-        lineObj.transform.parent = transform;
-
-        var lr = lineObj.AddComponent<LineRenderer>();
-
-        lr.positionCount = 2;
-        lr.SetPosition(0, start);
-        lr.SetPosition(1, end);
-
-        lr.startWidth = 0.05f;
-        lr.endWidth = 0.05f;
-
-        lr.material = new Material(Shader.Find("Sprites/Default"));
-        lr.startColor = Color.white;
-        lr.endColor = Color.white;
-
-        lr.useWorldSpace = true;
-    }
-
-    private void DrawConnections(TreeNode<int, GameObject> node)
-    {
-        if (node == null) return;
-
-        Vector3 parentPos = node.Value.transform.position;
-
-        if (node.Left != null)
+        if(node == null)
         {
-            Vector3 leftPos = node.Left.Value.transform.position;
-            DrawLine(parentPos, leftPos);
-            DrawConnections(node.Left);
+            return;
         }
+
+        Instantiate(node.Value, nodePositions[node], Quaternion.identity);
+        var lineLeft = Instantiate(Line).GetComponent<LineRenderer>();
+        lineLeft.positionCount = 2;
+
+        if(node.Left != null)
+        {
+            lineLeft.SetPosition(0, nodePositions[node]);
+            lineLeft.SetPosition(1, nodePositions[node.Left]);
+            InstantiateSubtree(node.Left);
+        }
+
+        var lineRight = Instantiate(Line).GetComponent<LineRenderer>();
+        lineRight.positionCount = 2;
 
         if (node.Right != null)
         {
-            Vector3 rightPos = node.Right.Value.transform.position;
-            DrawLine(parentPos, rightPos);
-            DrawConnections(node.Right);
+            lineRight.SetPosition(0, nodePositions[node]);
+            lineRight.SetPosition(1, nodePositions[node.Right]);
+            InstantiateSubtree(node.Right);
         }
     }
 }
