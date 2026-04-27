@@ -57,9 +57,8 @@ public class PriorityQueue<TElement, TPriority>
 
         var value = queue[0].Element;
 
-        var temp = queue[queue.Count - 1];
-        queue.Remove(temp);
-        queue[0] = temp;
+        queue[0] = queue[Count - 1];
+        queue.RemoveAt(Count - 1);
 
         HeapifyDown(0);
 
